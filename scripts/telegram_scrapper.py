@@ -10,9 +10,8 @@ api_id = os.getenv('TELEGRAM_API_ID')
 api_hash = os.getenv('TELEGRAM_API_HASH')
 phone = os.getenv('phone')
 
-# Set up logging
-logging.basicConfig(filename='telegram_scraping.log', level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+# Set up logging to display in the notebook or console
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Function to sanitize file names
 def sanitize_filename(filename):
@@ -73,36 +72,40 @@ async def scrape_channel(client, channel_username, writer, media_dir):
 # Initialize the Telegram client
 client = TelegramClient('scraping_session', api_id, api_hash)
 
+# Modify the main function to use async with
 async def main():
-    await client.start()
+    async with client:
+        await client.start()
 
-    # Create a directory for media files (photos/documents)
-    media_dir = 'media_files'
-    os.makedirs(media_dir, exist_ok=True)
+        # Create a directory for media files (photos/documents)
+        media_dir = 'media_files'
+        os.makedirs(media_dir, exist_ok=True)
 
-    # Open the CSV file and prepare the writer
-    with open('telegram_data.csv', 'w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        # CSV headers including channel title
-        writer.writerow(['Channel Title', 'Channel Username', 'Message ID', 'Message Text', 'Date', 'Media Path'])
+        # Open the CSV file and prepare the writer
+        with open('data.csv', 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            # CSV headers including channel title
+            writer.writerow(['Channel Title', 'Channel Username', 'Message ID', 'Message Text', 'Date', 'Media Path'])
 
-        # List of channels to scrape (Ethiopian medical business channels)
-        channels = [
-            'https://t.me/DoctorsET',        # Ethiopian medical business channel
-            'https://t.me/lobelia4cosmetics', # Cosmetics and pharmaceutical products
-            'https://t.me/yetenaweg',         # Ethiopian medical services
-            'https://t.me/EAHCI',             # Ethiopian Allied Health Council International
-            'https://t.me/ChemedTelegramChannel', # Ethiopian Chemed channel
-        ]
+            # List of channels to scrape (Ethiopian medical business channels)
+            channels = [
+                'https://t.me/DoctorsET',        # Ethiopian medical business channel
+                'https://t.me/lobelia4cosmetics', # Cosmetics and pharmaceutical products
+                'https://t.me/yetenaweg',         # Ethiopian medical services
+                'https://t.me/EAHCI',             # Ethiopian Allied Health Council International
+                'https://t.me/ChemedTelegramChannel', # Ethiopian Chemed channel
+            ]
 
-        # Iterate over channels and scrape data
-        for channel in channels:
-            logging.info(f"Starting to scrape data from {channel}")
-            print(f"Scraping data from {channel}...")
-            await scrape_channel(client, channel, writer, media_dir)
-            print(f"Finished scraping data from {channel}")
-            logging.info(f"Finished scraping data from {channel}")
+            # Iterate over channels and scrape data
+            for channel in channels:
+                logging.info(f"Starting to scrape data from {channel}")
+                print(f"Scraping data from {channel}...")
+                await scrape_channel(client, channel, writer, media_dir)
+                print(f"Finished scraping data from {channel}")
+                logging.info(f"Finished scraping data from {channel}")
 
-# Run the main function
-with client:
-    client.loop.run_until_complete(main())
+# This part can remain if you are running this script normally in Python, but will not be needed in Jupyter
+if __name__ == "__main__":
+    import asyncio
+    # Use asyncio.run() to handle async code if run from a script
+    asyncio.run(main())
