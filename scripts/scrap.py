@@ -26,20 +26,36 @@ def scrape_html_to_csv(html_file_path):
         # Extract messages from the HTML
         messages = soup.find_all('div', class_='message')
 
+        message_counter = 1  # Counter to generate unique message IDs if missing
+
         # Iterate over each message in the HTML and extract relevant data
         for message in messages:
-            message_id = message.get('id', '')
-            date_div = message.find('div', class_='date')
+            # Get the message ID, handle cases where ID is missing
+            message_id = message.get('id')
+            if not message_id or message_id == "0":  # If no ID or ID is '0', generate a unique ID
+                message_id = f"msg_{message_counter}"
+                message_counter += 1
+
+            # Extract 'date' information from service or default messages
+            date_div = message.find('div', class_='pull_right date details') or message.find('div', class_='body details')
+            date = date_div.text.strip() if date_div else 'Unknown Date'
+
+            # Extract 'from_name' (sender)
             from_name_div = message.find('div', class_='from_name')
-            text_div = message.find('div', class_='text')
-            
-            # Extract text from HTML elements, handle missing elements gracefully
-            date = date_div.text.strip() if date_div else ''
             from_name = from_name_div.text.strip() if from_name_div else 'Unknown Sender'
+
+            # Extract message text
+            text_div = message.find('div', class_='text')
             message_text = text_div.text.strip() if text_div else ''
-            media_path = ''  # Placeholder for media path (modify if extracting media)
+
+            # Handle any potential media links (if any exist, modify as needed)
+            media_path = ''  # Currently empty, modify logic if necessary
 
             # Write each message data to CSV
             writer.writerow([from_name, '', message_id, message_text, date, media_path])
 
     print(f"Scraping complete! Data saved to {csv_file_path}")
+
+# # Example usage
+# html_file_path = 'path_to_your_html_file.html'
+# scrape_html_to_csv(html_file_path)
