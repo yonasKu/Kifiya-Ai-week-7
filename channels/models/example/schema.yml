@@ -1,18 +1,60 @@
 version: 2
 
+sources:
+  - name: channels
+    schema: public
+    tables:
+      - name: cleaned_data
+# models/schema.yml
+
+
 models:
-  - name: transformed_data  # This is the model created from the SQL file
-    description: "This model transforms the cleaned_data for analysis."
+  # - name: transformed_cleaned_data
+  #   description: "This model contains cleaned and transformed data from the original cleaned_data table."
+  #   columns:
+  #     - name: "Channel Title"
+  #       description: "The title of the communication channel."
+  #     - name: "Channel Username"
+  #       description: "The username associated with the channel."
+  #     - name: "Message ID"
+  #       description: "Unique identifier for the message."
+  #     - name: "Message Text"
+  #       description: "Content of the message."
+  #       tests:
+  #         - not_null  # Ensure messages are not null
+  #     - name: "Message Date"
+  #       description: "Date when the message was sent."
+  #       tests:
+  #         - not_null  # Ensure date is not null
+  #     - name: "Media Path"
+  #       description: "Path to any associated media."
+  #     - name: "Message Length Category"
+  #       description: "Categorization of message length."
+# models:
+
+  - name: transformed_cleaned_data  # Ensure this matches your SQL model
+    description: "Transformed data with message categorization."
     columns:
-      - name: Channel Title
-        description: "The title of the channel."
-      - name: Channel Username
-        description: "The standardized username of the channel."
-      - name: Message ID
-        description: "The cleaned message ID."
-      - name: Message Text
-        description: "The content of the message."
-      - name: Date
-        description: "The date the message was sent."
-      - name: Media Path
-        description: "The path to any media associated with the message."
+      - name: message_id
+        description: "Unique message identifier."
+        tests:
+          - not_null  # Ensures every message has an ID
+          - unique  # If message_id should be unique
+
+      - name: message_text
+        description: "Content of the message."
+        tests:
+          - not_null  # Ensures no message is empty
+
+      - name: message_date
+        description: "The date when the message was posted."
+        tests:
+          - not_null  # Ensures that every message has a valid date
+          - accepted_values:  # Add this if you expect specific values
+              values: ["Unknown Date", "NULL"]  # If necessary
+
+      - name: message_length_category
+        description: "Category based on message length (Short/Long/No Message)."
+        tests:
+          - accepted_values:
+              values: ['Long Message', 'Short Message', 'No Message']
