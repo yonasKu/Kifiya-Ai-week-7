@@ -1,8 +1,0 @@
-version: 2
-
-sources:
-  - name: channels  # Name you use to refer to the source
-    database: postgres  # Your actual database name
-    schema: public  # Schema where your cleaned_data table resides
-    tables:
-      - name: cleaned_data  # Name of your existing table in the database

@@ -1,18 +1,105 @@
+# version: 2
+
+# sources:
+#   - name: channels
+#     schema: public
+#     tables:
+#       - name: cleaned_data
+
+# models:
+#   - name: transformed_cleaned_data
+#     description: "Transformed data with message categorization based on content and date."
+#     columns:
+#       - name: "Channel Title"
+#         description: "The title of the channel from which the message originated."
+#         data_tests:
+#           - not_null: {}
+
+#       - name: "Channel Username"
+#         description: "The username of the channel from which the message originated."
+#         data_tests:
+#           - not_null: {}
+
+#       - name: "Message Id"
+#         description: "Unique identifier for each message."
+#         data_tests:
+#           - not_null: {}
+
+#       - name: message_text
+#         description: "Content of the message, with empty messages replaced by 'No Message'."
+#         data_tests:
+#           - not_null: {}
+
+#       - name: message_date
+#         description: "The date the message was sent, in the format YYYY-MM-DD."
+#         data_tests:
+#           - accepted_values:
+#               values: [NULL]  # Use NULL for missing dates
+
+#       - name: "Media Path"
+#         description: "Path to any media associated with the message."
+#         data_tests:
+#           - not_null: {}
+
+#       - name: message_length_category
+#         description: "Categorizes the message length as 'Long Message', 'Short Message', or 'No Message'."
+#         data_tests:
+#           - not_null: {}
+#           - accepted_values:
+#               values: ['Long Message', 'Short Message', 'No Message']
+
+
+
 version: 2
 
 models:
-  - name: transformed_data  # This is the model created from the SQL file
-    description: "This model transforms the cleaned_data for analysis."
+  - name: transformed_cleaned_data  # The name of your model
+    description: "This model transforms and cleans data from the public.cleaned_data source, handling message text, categorizing message lengths, and ensuring valid dates."
     columns:
-      - name: Channel Title
-        description: "The title of the channel."
-      - name: Channel Username
-        description: "The standardized username of the channel."
-      - name: Message ID
-        description: "The cleaned message ID."
-      - name: Message Text
-        description: "The content of the message."
-      - name: Date
-        description: "The date the message was sent."
-      - name: Media Path
-        description: "The path to any media associated with the message."
+      - name: channel_title
+        description: "The title of the channel associated with the message."
+        tests:
+          - not_null  # Ensures no null values in the channel title
+      - name: channel_username
+        description: "The username of the channel associated with the message."
+        tests:
+          - not_null  # Ensures no null values in the channel username
+      - name: message_id
+        description: "The unique identifier for the message."
+        tests:
+          - not_null  # Ensures no null values in message ID
+      - name: message_text
+        description: "The content of the message. If no message was provided, this is filled with 'No Message'."
+        tests:
+          - not_null  # Ensures no null values in message text
+      - name: message_length_category
+        description: "Categorizes the message based on its length into 'Long Message', 'Short Message', or 'No Message'."
+        tests:
+          - accepted_values:
+              values: ['Long Message', 'Short Message', 'No Message']  # Validates message length categories
+
+sources:
+  - name: cleaned_data  # The source table you're pulling data from
+    description: "Raw data that includes channel information, message text, and message metadata."
+    tables:
+      - name: cleaned_data
+        description: "The raw table that stores the cleaned data from which the model is created."
+        columns:
+          - name: channel_title
+            description: "The title of the channel in the raw data."
+          - name: channel_username
+            description: "The username of the channel in the raw data."
+          - name: message_id
+            description: "The unique identifier of the message in the raw data."
+          - name: message_text
+            description: "The message content in the raw data."
+          - name: date
+            description: "The date the message was created in the raw data."
+          - name: media_path
+            description: "The file path of the media associated with the message in the raw data."
+
+data_tests:
+  - name: test_message_date_is_valid  # Custom test for message date validity
+    description: "This test checks that message dates are valid and conform to expected patterns."
+    config:
+      severity: error  # Sets the test to error out if it fails
